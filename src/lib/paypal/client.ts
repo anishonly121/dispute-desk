@@ -105,10 +105,18 @@ type RequestOptions = {
   body?: unknown;
   // An exact JSON string to send as-is, for when re-serialising would change the bytes.
   rawBody?: string;
+  // Content type for rawBody when it isn't JSON (e.g. multipart/form-data).
+  contentType?: string;
   idempotencyKey?: string;
 };
 
-async function send(pathOrUrl: string, method: Method, body: string | undefined, idempotencyKey?: string) {
+async function send(
+  pathOrUrl: string,
+  method: Method,
+  body: string | undefined,
+  contentType: string,
+  idempotencyKey?: string,
+) {
   const { baseUrl } = getConfig();
   const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${baseUrl}${pathOrUrl}`;
 
@@ -121,8 +129,8 @@ async function send(pathOrUrl: string, method: Method, body: string | undefined,
   const headers: Record<string, string> = {
     Authorization: `Bearer ${await getAccessToken()}`,
     Accept: "application/json",
-    "Content-Type": "application/json",
   };
+  if (body !== undefined) headers["Content-Type"] = contentType;
   if (idempotencyKey) headers["PayPal-Request-Id"] = idempotencyKey;
 
   return fetch(url, {
@@ -141,14 +149,15 @@ export async function paypalRequest<T>(pathOrUrl: string, options: RequestOption
     method === "GET" ? undefined : (options.idempotencyKey ?? crypto.randomUUID());
 
   const body = options.rawBody ?? (options.body === undefined ? undefined : JSON.stringify(options.body));
+  const contentType = options.contentType ?? "application/json";
 
-  let res = await send(pathOrUrl, method, body, idempotencyKey);
+  let res = await send(pathOrUrl, method, body, contentType, idempotencyKey);
 
   // A 401 usually means the cached token went stale. Drop it and retry once,
   // with the same idempotency key so a write can't happen twice.
   if (res.status === 401) {
     cachedToken = null;
-    res = await send(pathOrUrl, method, body, idempotencyKey);
+    res = await send(pathOrUrl, method, body, contentType, idempotencyKey);
   }
 
   if (!res.ok) throw await toPayPalError(res);

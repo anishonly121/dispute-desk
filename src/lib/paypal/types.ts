@@ -36,6 +36,7 @@ export type DisputedTransaction = {
 };
 
 export type DisputeDetail = DisputeSummary & {
+  links?: Link[]; // PayPal lists the actions allowed right now as links
   disputed_transactions?: DisputedTransaction[];
   messages?: DisputeMessage[];
   seller_response_due_date?: string;
