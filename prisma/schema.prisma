@@ -1,7 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Dispute Desk database schema.
+// PayPal's own values (reason, status, stage) are stored as plain strings,
+// because PayPal can add new values without warning.
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +9,89 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// One row per PayPal dispute, refreshed every time we sync it.
+model Dispute {
+  id                  String    @id // PayPal dispute ID, e.g. PP-R-ONB-10193210
+  reason              String // e.g. MERCHANDISE_OR_SERVICE_NOT_RECEIVED
+  status              String // e.g. WAITING_FOR_SELLER_RESPONSE
+  stage               String // INQUIRY, CHARGEBACK, ...
+  amount              Decimal   @db.Decimal(12, 2) // never a float for money
+  currency            String    @db.Char(3)
+  captureId           String?
+  orderId             String?
+  itemDescription     String?
+  lastBuyerMessage    String?
+  sellerResponseDueAt DateTime?
+  paypalCreatedAt     DateTime
+  paypalUpdatedAt     DateTime
+  raw                 Json // PayPal's full response, kept for the case file and debugging
+  caseFile            Json? // built in Session 4: the only data the AI is allowed to see
+  caseFileBuiltAt     DateTime?
+  createdAt           DateTime  @default(now())
+  syncedAt            DateTime  @updatedAt
+
+  recommendations Recommendation[]
+  actions         Action[]
+
+  @@index([sellerResponseDueAt])
+}
+
+enum RecommendedAction {
+  ACCEPT_CLAIM
+  MAKE_OFFER
+  PROVIDE_EVIDENCE
+  SEND_MESSAGE
+}
+
+// What the AI suggested for a dispute. Kept even if the merchant ignores it.
+model Recommendation {
+  id         String            @id @default(cuid())
+  disputeId  String
+  dispute    Dispute           @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  action     RecommendedAction
+  confidence Float
+  summary    String
+  reasons    Json // each reason points at a case-file field
+  draft      String // the reply or evidence text the merchant can approve
+  model      String // which AI model produced it
+  createdAt  DateTime          @default(now())
+
+  actions Action[]
+}
+
+enum ActionStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+// Everything sent to PayPal on the merchant's behalf. This is the audit trail.
+model Action {
+  id               String          @id @default(cuid())
+  disputeId        String
+  dispute          Dispute         @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  recommendationId String?
+  recommendation   Recommendation? @relation(fields: [recommendationId], references: [id])
+  type             RecommendedAction
+  status           ActionStatus    @default(PENDING)
+  idempotencyKey   String          @unique // sent to PayPal as PayPal-Request-Id
+  request          Json
+  response         Json?
+  error            String?
+  createdAt        DateTime        @default(now())
+  completedAt      DateTime?
+}
+
+// Every webhook PayPal sends us. The PayPal event ID is the primary key,
+// so a duplicate delivery of the same event can't be stored or processed twice.
+model WebhookEvent {
+  id          String    @id // PayPal event ID, e.g. WH-...
+  eventType   String
+  resourceId  String?
+  payload     Json
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+  error       String?
 }
