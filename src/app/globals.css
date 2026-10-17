@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
+/* Dispute Desk palette: cool ledger paper, deep ink, one teal for decisions,
+   amber only for deadlines. */
+@theme {
+  --color-paper: #f2f4f7;
+  --color-sheet: #ffffff;
+  --color-ink: #18202e;
+  --color-muted: #5a6476;
+  --color-line: #d6dce5;
+  --color-decide: #0d6b67;
+  --color-decide-dark: #094f4c;
+  --color-decide-wash: #e3f1f0;
+  --color-due: #9a4f06;
+  --color-due-wash: #fcf0dc;
+  --color-risk: #a8261d;
+  --color-risk-wash: #fbe9e7;
+  --color-mark: #fff1a8;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1; /* aligned figures for amounts and dates */
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-decide);
+  outline-offset: 2px;
+}
+
+/* A fact that an AI reason points at, briefly marked like a highlighter. */
+.cited {
+  animation: cited 2.4s ease-out;
+}
+
+@keyframes cited {
+  0%,
+  40% {
+    background: var(--color-mark);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cited {
+    animation: none;
+    background: var(--color-mark);
+  }
 }

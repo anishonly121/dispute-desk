@@ -14,6 +14,8 @@
     "@ai-sdk/google": "^4.0.99",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "ag-grid-community": "^36.2.0",
+    "ag-grid-react": "^36.2.0",
     "ai": "^7.0.143",
     "dotenv": "^18.0.8",
     "next": "16.4.2",
