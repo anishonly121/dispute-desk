@@ -46,12 +46,23 @@ export type Capture = {
   status: string;
   amount: Money;
   create_time: string;
+  status_details?: { reason?: string }; // why a payment is PENDING, e.g. held during a dispute
   supplementary_data?: { related_ids?: { order_id?: string } };
+};
+
+export type Tracker = {
+  id: string; // "<capture ID>-<tracking number>"
+  status?: string;
+  create_time?: string;
 };
 
 export type Order = {
   id: string;
   status: string;
   create_time?: string;
-  purchase_units: { description?: string; amount: Money }[];
+  purchase_units: {
+    description?: string;
+    amount: Money;
+    shipping?: { trackers?: Tracker[] };
+  }[];
 };
