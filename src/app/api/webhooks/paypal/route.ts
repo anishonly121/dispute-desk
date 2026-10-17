@@ -18,11 +18,13 @@ export async function POST(request: Request) {
   const rawBody = await request.text();
 
   if (!(await verifyWebhookSignature(request.headers, rawBody))) {
+    console.warn("PayPal webhook rejected: signature did not verify");
     return Response.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   const event = JSON.parse(rawBody) as PayPalEvent;
   const disputeId = event.resource?.dispute_id;
+  console.log(`PayPal webhook received: ${event.event_type} ${event.id} ${disputeId ?? ""}`);
 
   // Store the event under PayPal's event ID. If it's already stored, leave it as it is.
   const record = await prisma.webhookEvent.upsert({
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
     });
     return Response.json({ ok: true });
   } catch (error) {
+    console.error(`PayPal webhook processing failed for ${event.id}:`, error);
     // Record what went wrong and return 500, so PayPal retries the event later.
     // The retry gets processed because processedAt is still empty.
     await prisma.webhookEvent.update({

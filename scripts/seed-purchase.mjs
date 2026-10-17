@@ -2,6 +2,8 @@
 // Usage:
 //   node --env-file=.env scripts/seed-purchase.mjs create "Handmade ceramic mug" 38.00
 //   node --env-file=.env scripts/seed-purchase.mjs capture ORDER_ID
+//   node --env-file=.env scripts/seed-purchase.mjs buy "Ceramic plant pot" 22.00
+//     (creates the order, waits while you pay in the browser, then captures it)
 
 const base = process.env.PAYPAL_API_BASE;
 const siteUrl = "https://dispute-desk-nine.vercel.app";
@@ -56,6 +58,21 @@ async function createOrder(token, description, value) {
   console.log("Order ID:", order.id);
   console.log("Open this link and pay as the buyer:");
   console.log(payLink);
+  return order.id;
+}
+
+// Check the order every 3 seconds until the buyer has approved it (paid).
+async function waitForApproval(token, orderId) {
+  console.log("Waiting for you to pay in the browser...");
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const res = await fetch(`${base}/v2/checkout/orders/${orderId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const order = await res.json();
+    if (order.status === "APPROVED") return;
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+  }
+  throw new Error("Gave up waiting after 10 minutes. Run capture manually once you've paid.");
 }
 
 // After the buyer has paid, capture the money into the business account.
@@ -82,4 +99,8 @@ const token = await getToken();
 
 if (command === "create") await createOrder(token, arg1, arg2);
 else if (command === "capture") await captureOrder(token, arg1);
-else console.log('Use: create "<description>" <amount>   or   capture <orderId>');
+else if (command === "buy") {
+  const orderId = await createOrder(token, arg1, arg2);
+  await waitForApproval(token, orderId);
+  await captureOrder(token, orderId);
+} else console.log('Use: buy "<description>" <amount>, create "<description>" <amount>, or capture <orderId>');
