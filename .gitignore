@@ -43,3 +43,7 @@ next-env.d.ts
 /src/generated/prisma
 
 .vscode/
+
+# written by next dev for AI coding agents, not part of this project
+AGENTS.md
+CLAUDE.md
