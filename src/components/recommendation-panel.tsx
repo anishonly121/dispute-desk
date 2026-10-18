@@ -3,6 +3,7 @@
 // Nothing is sent until they press the button, and the button stays disabled
 // while any [placeholder] is left in the message.
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { type ApproveState, approveAction } from "@/app/disputes/[id]/actions";
 import type { RecommendedAction } from "@/generated/prisma/client";
@@ -26,6 +27,7 @@ type Props = {
   rec: PanelRecommendation;
   allowed: string[] | null; // actions PayPal allows right now; null if PayPal couldn't be reached
   alreadySent: boolean;
+  canAct: boolean; // false for visitors without the operator key
 };
 
 const PAYPAL_NAME: Record<RecommendedAction, string> = {
@@ -45,14 +47,14 @@ function showFact(id: string) {
   el.classList.add("cited");
 }
 
-export function RecommendationPanel({ disputeId, amount, currency, rec, allowed, alreadySent }: Props) {
+export function RecommendationPanel({ disputeId, amount, currency, rec, allowed, alreadySent, canAct }: Props) {
   const [draft, setDraft] = useState(rec.draft);
   const [offer, setOffer] = useState(rec.offerAmount ?? "");
   const [state, formAction, sending] = useActionState<ApproveState, FormData>(approveAction, null);
 
   const placeholders = draft.match(/\[[^\]]+\]/g) ?? [];
   const notAllowed = allowed !== null && !allowed.includes(PAYPAL_NAME[rec.action]);
-  const blocked = placeholders.length > 0 || notAllowed || alreadySent || draft.trim() === "";
+  const blocked = !canAct || placeholders.length > 0 || notAllowed || alreadySent || draft.trim() === "";
 
   return (
     <section aria-labelledby="suggestion" className="rounded-lg border border-line bg-sheet p-5">
@@ -128,6 +130,15 @@ export function RecommendationPanel({ disputeId, amount, currency, rec, allowed,
           </p>
         )}
         {alreadySent && <p className="text-sm text-muted">This suggestion has already been sent.</p>}
+        {!canAct && !alreadySent && (
+          <p className="rounded-md border border-line px-3 py-2 text-sm text-muted">
+            Read-only demo. You can edit the reply to try it, but{" "}
+            <Link href="/unlock" className="font-medium text-decide-dark underline">
+              unlock sending
+            </Link>{" "}
+            to send it to PayPal.
+          </p>
+        )}
 
         <button
           type="submit"

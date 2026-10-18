@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { type DisputeRow, DisputeGrid } from "@/components/dispute-grid";
 import { SyncButton } from "@/components/sync-button";
 import { prisma } from "@/lib/db";
+import { isOperator } from "@/lib/operator";
 import { ACTION_SHORT, daysUntil, formatDate, formatShortDate, reasonLabel, statusLabel } from "@/lib/labels";
 
 export default function Home() {
@@ -23,6 +24,7 @@ async function Queue() {
     include: { recommendations: { orderBy: { createdAt: "desc" }, take: 1 } },
   });
   const now = new Date();
+  const canAct = await isOperator();
 
   // "Needs a reply" means PayPal is waiting on the seller. A case PayPal is
   // reviewing is still in the grid, but it isn't counted here.
@@ -67,7 +69,7 @@ async function Queue() {
             </p>
           )}
         </div>
-        <SyncButton />
+        <SyncButton canAct={canAct} />
       </div>
       <DisputeGrid rows={rows} />
     </>

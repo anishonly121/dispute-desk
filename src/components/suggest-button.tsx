@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { suggestAction } from "@/app/disputes/[id]/actions";
 
-export function SuggestButton({ disputeId, label }: { disputeId: string; label: string }) {
+type Props = { disputeId: string; label: string; canAct: boolean };
+
+export function SuggestButton({ disputeId, label, canAct }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -11,9 +13,10 @@ export function SuggestButton({ disputeId, label }: { disputeId: string; label: 
     <div>
       <button
         type="button"
-        disabled={pending}
+        disabled={pending || !canAct}
+        title={canAct ? undefined : "Unlock sending to get a new suggestion"}
         onClick={() => startTransition(async () => setError(await suggestAction(disputeId)))}
-        className="rounded-md border border-line bg-sheet px-3 py-2 text-sm font-medium hover:border-ink disabled:opacity-60"
+        className="rounded-md border border-line bg-sheet px-3 py-2 text-sm font-medium hover:border-ink disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Reading the case file..." : label}
       </button>

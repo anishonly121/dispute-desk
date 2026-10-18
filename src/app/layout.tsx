@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Public_Sans } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import { AccessBadge } from "@/components/access-badge";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -22,7 +24,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <Link href="/" className="text-lg font-bold tracking-tight">
               Dispute Desk
             </Link>
-            <span className="rounded border border-line px-2 py-0.5 text-sm text-muted">PayPal sandbox</span>
+            <div className="flex items-center gap-2">
+              <span className="rounded border border-line px-2 py-0.5 text-sm text-muted">PayPal sandbox</span>
+              <Suspense fallback={null}>
+                <AccessBadge />
+              </Suspense>
+            </div>
           </div>
         </header>
         {children}

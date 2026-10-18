@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { syncNow } from "@/app/actions";
 
-export function SyncButton() {
+export function SyncButton({ canAct }: { canAct: boolean }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
 
@@ -14,9 +14,10 @@ export function SyncButton() {
       </span>
       <button
         type="button"
-        disabled={pending}
+        disabled={pending || !canAct}
+        title={canAct ? undefined : "Unlock sending to sync with PayPal"}
         onClick={() => startTransition(async () => setMessage(await syncNow()))}
-        className="rounded-md border border-line bg-sheet px-3 py-2 text-sm font-medium hover:border-ink disabled:opacity-60"
+        className="rounded-md border border-line bg-sheet px-3 py-2 text-sm font-medium hover:border-ink disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Syncing..." : "Sync with PayPal"}
       </button>

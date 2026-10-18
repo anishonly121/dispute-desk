@@ -8,6 +8,7 @@ import { SuggestButton } from "@/components/suggest-button";
 import type { CaseFile } from "@/lib/case-file";
 import { prisma } from "@/lib/db";
 import { daysUntil, displayFactValue, formatDate, reasonLabel, stageLabel, statusLabel } from "@/lib/labels";
+import { isOperator } from "@/lib/operator";
 import { allowedActions, getDispute } from "@/lib/paypal/disputes";
 
 export default function DisputePage({ params }: PageProps<"/disputes/[id]">) {
@@ -44,7 +45,7 @@ async function Case({ params }: { params: Promise<{ id: string }> }) {
   });
   if (!dispute) notFound();
 
-  const allowed = await loadAllowed(dispute.id);
+  const [allowed, canAct] = await Promise.all([loadAllowed(dispute.id), isOperator()]);
   const caseFile = dispute.caseFile as unknown as CaseFile | null;
   const latest = dispute.recommendations[0];
   const amount = dispute.amount.toFixed(2);
@@ -141,8 +142,9 @@ async function Case({ params }: { params: Promise<{ id: string }> }) {
                 rec={rec}
                 allowed={allowed}
                 alreadySent={alreadySent}
+                canAct={canAct}
               />
-              <SuggestButton disputeId={dispute.id} label="Get a new suggestion" />
+              <SuggestButton disputeId={dispute.id} label="Get a new suggestion" canAct={canAct} />
             </>
           ) : (
             <div className="rounded-lg border border-line bg-sheet p-5">
@@ -150,7 +152,7 @@ async function Case({ params }: { params: Promise<{ id: string }> }) {
               <p className="mt-2 mb-4 text-muted">
                 Dispute Desk reads the case file and suggests one next step, with a reply you can edit.
               </p>
-              <SuggestButton disputeId={dispute.id} label="Get a suggestion" />
+              <SuggestButton disputeId={dispute.id} label="Get a suggestion" canAct={canAct} />
             </div>
           )}
 
