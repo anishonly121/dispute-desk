@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  agentRules: false, // don't write AGENTS.md for AI coding agents
   turbopack: {
     rules: {
       "*.css": {
