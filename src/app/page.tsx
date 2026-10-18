@@ -5,7 +5,7 @@ import { type DisputeRow, DisputeGrid } from "@/components/dispute-grid";
 import { SyncButton } from "@/components/sync-button";
 import { prisma } from "@/lib/db";
 import { isOperator } from "@/lib/operator";
-import { ACTION_SHORT, daysUntil, formatDate, formatShortDate, reasonLabel, statusLabel } from "@/lib/labels";
+import { ACTION_SENT, ACTION_SHORT, daysUntil, formatDate, formatShortDate, reasonLabel, statusLabel, statusTone } from "@/lib/labels";
 
 export default function Home() {
   return (
@@ -21,7 +21,10 @@ async function Queue() {
   // The queue is live data, so render it per request instead of prerendering it.
   await connection();
   const disputes = await prisma.dispute.findMany({
-    include: { recommendations: { orderBy: { createdAt: "desc" }, take: 1 } },
+    include: {
+      recommendations: { orderBy: { createdAt: "desc" }, take: 1 },
+      actions: { where: { status: "SUCCEEDED" }, orderBy: { createdAt: "desc" }, take: 1 },
+    },
   });
   const now = new Date();
   const canAct = await isOperator();
@@ -31,6 +34,7 @@ async function Queue() {
   const open = disputes.filter((d) => d.status === "WAITING_FOR_SELLER_RESPONSE");
   const rows: DisputeRow[] = disputes.map((d) => {
     const rec = d.recommendations[0];
+    const lastSent = d.actions[0];
     return {
       id: d.id,
       item: d.itemDescription ?? d.id,
@@ -38,10 +42,13 @@ async function Queue() {
       currency: d.currency,
       reason: reasonLabel(d.reason),
       status: statusLabel(d.status),
+      statusTone: statusTone(d.status),
       daysLeft: d.sellerResponseDueAt ? daysUntil(d.sellerResponseDueAt, now) : null,
       dueDate: d.sellerResponseDueAt ? formatShortDate(d.sellerResponseDueAt) : null,
       suggestion: rec ? ACTION_SHORT[rec.action] : null,
       confidence: rec?.confidence ?? null,
+      // Once the latest suggestion has been sent, say so instead of suggesting it again.
+      sent: rec && lastSent?.recommendationId === rec.id ? ACTION_SENT[lastSent.type] : null,
     };
   });
 
@@ -72,6 +79,47 @@ async function Queue() {
         <SyncButton canAct={canAct} />
       </div>
       <DisputeGrid rows={rows} />
+      <HowItWorks />
     </>
+  );
+}
+
+// A short explainer under the queue for first-time visitors. It's a real
+// sequence (each step feeds the next), so it's numbered.
+const STEPS = [
+  {
+    title: "A case file from PayPal",
+    text: "Each dispute is followed to its payment and order. The item, dates, tracking and buyer messages become numbered facts.",
+  },
+  {
+    title: "AI suggests, code checks",
+    text: "Gemini reads only the case file and picks one step. Every reason must cite a fact, and code rejects anything it can't back up.",
+  },
+  {
+    title: "You approve, it's sent once",
+    text: "You edit the reply and press send. It goes to PayPal's Disputes API with an idempotency key, and lands in the case history.",
+  },
+];
+
+function HowItWorks() {
+  return (
+    <section aria-labelledby="how" className="mt-14 border-t border-line pt-8">
+      <h2 id="how" className="text-lg font-bold">
+        How it works
+      </h2>
+      <ol className="mt-4 grid gap-6 sm:grid-cols-3">
+        {STEPS.map((step, i) => (
+          <li key={step.title} className="flex gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-decide text-sm font-bold text-white">
+              {i + 1}
+            </span>
+            <div>
+              <h3 className="font-semibold">{step.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted">{step.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

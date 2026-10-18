@@ -18,7 +18,7 @@ Everything runs against the PayPal sandbox. No real money moves.
 
 ## What it does
 
-- **Queue.** Every open dispute in one table, most urgent reply deadline first, with the suggested step for each one.
+- **Queue.** Every dispute in one AG Grid table, most urgent reply deadline first, with its status, days left and the suggested step, or what has already been sent. You can search by item, reason or dispute ID.
 - **Case file.** For each dispute it follows dispute, then capture, then order to find what was bought, when it was paid, the tracking number and the buyer's messages. Every fact gets a number (F1, F2, M1...) and a note of where it came from.
 - **Suggestion.** An AI model reads only the case file and picks one of four steps: reply to the buyer, offer a partial refund, send tracking to PayPal, or accept and refund. Every reason it gives has to cite a fact.
 - **Human approval.** The merchant can edit the reply and the offer amount. The button says exactly what will happen, for example "Send offer of 10.00 SGD". Nothing goes to PayPal until it's pressed.
@@ -121,6 +121,14 @@ node --env-file=.env scripts/seed-purchase.mjs buy "Ceramic plant pot" 22.00
 Then log in to the sandbox buyer account at sandbox.paypal.com and open a dispute on that payment. It arrives through the webhook, or press Sync.
 
 Other helper scripts in `scripts/` run with `npx tsx --env-file=.env scripts/<name>.ts`, for example `recommend.ts` to get suggestions from the command line.
+
+## Tests
+
+```bash
+npm test
+```
+
+The tests cover the parts that keep the AI honest and the sends safe: the checks on every AI answer (citations, offer limits, tracking, invented shipping claims), building the case file from PayPal data, reading which actions PayPal allows, and the operator key. They use Node's built-in test runner and don't need PayPal, Gemini or a database.
 
 ## Project structure
 

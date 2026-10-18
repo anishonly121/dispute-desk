@@ -100,6 +100,7 @@ export function RecommendationPanel({ disputeId, amount, currency, rec, allowed,
               inputMode="decimal"
               value={offer}
               onChange={(e) => setOffer(e.target.value)}
+              readOnly={alreadySent}
               className="mt-1 w-32 rounded-md border border-line px-3 py-2"
             />
           </label>
@@ -115,6 +116,7 @@ export function RecommendationPanel({ disputeId, amount, currency, rec, allowed,
             rows={7}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
+            readOnly={alreadySent}
             className="mt-1 w-full rounded-md border border-line px-3 py-2 leading-relaxed"
           />
         </label>
@@ -129,7 +131,11 @@ export function RecommendationPanel({ disputeId, amount, currency, rec, allowed,
             PayPal doesn&apos;t allow this step on the dispute right now. Get a new suggestion.
           </p>
         )}
-        {alreadySent && <p className="text-sm text-muted">This suggestion has already been sent.</p>}
+        {alreadySent && (
+          <p className="rounded-md bg-decide-wash px-3 py-2 text-sm font-medium text-decide-dark">
+            Sent to PayPal. You can see it under Sent to PayPal below.
+          </p>
+        )}
         {!canAct && !alreadySent && (
           <p className="rounded-md border border-line px-3 py-2 text-sm text-muted">
             Read-only demo. You can edit the reply to try it, but{" "}

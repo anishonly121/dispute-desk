@@ -8,14 +8,14 @@ export async function AccessBadge() {
   if (await isOperator()) {
     return (
       <form action={lock}>
-        <button type="submit" className="rounded border border-line px-2 py-0.5 text-sm text-muted hover:border-ink">
+        <button type="submit" className="whitespace-nowrap rounded border border-line px-2 py-0.5 text-sm text-muted hover:border-ink">
           Lock sending
         </button>
       </form>
     );
   }
   return (
-    <Link href="/unlock" className="rounded border border-line px-2 py-0.5 text-sm text-muted hover:border-ink">
+    <Link href="/unlock" className="whitespace-nowrap rounded border border-line px-2 py-0.5 text-sm text-muted hover:border-ink">
       Read-only. Unlock
     </Link>
   );

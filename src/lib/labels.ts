@@ -46,6 +46,21 @@ export const ACTION_SHORT: Record<RecommendedAction, string> = {
   SEND_MESSAGE: "Reply to buyer",
 };
 
+// What the queue shows once a step has been sent to PayPal.
+export const ACTION_SENT: Record<RecommendedAction, string> = {
+  ACCEPT_CLAIM: "Refunded",
+  MAKE_OFFER: "Offer sent",
+  PROVIDE_EVIDENCE: "Tracking sent",
+  SEND_MESSAGE: "Reply sent",
+};
+
+// Colour group for a status: needs the merchant, waiting on someone else, or closed.
+export function statusTone(code: string): "due" | "wait" | "done" {
+  if (code === "WAITING_FOR_SELLER_RESPONSE") return "due";
+  if (code === "RESOLVED") return "done";
+  return "wait";
+}
+
 // The full step, as a sentence, for the case page heading.
 export function actionSentence(action: RecommendedAction, amount: string, offer: string | null, currency: string) {
   switch (action) {

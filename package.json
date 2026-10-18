@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "sync": "tsx --env-file=.env scripts/sync-disputes.ts"
+    "sync": "tsx --env-file=.env scripts/sync-disputes.ts",
+    "test": "tsx --test src/lib/ai/recommend.test.ts src/lib/paypal/disputes.test.ts src/lib/case-file.test.ts src/lib/operator.test.ts src/lib/labels.test.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.99",

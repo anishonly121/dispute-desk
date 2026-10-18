@@ -10,9 +10,13 @@ const publicSans = Public_Sans({
   subsets: ["latin"],
 });
 
+const description = "Resolve PayPal disputes early, with AI suggestions grounded in your own order data.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://dispute-desk-nine.vercel.app"),
   title: "Dispute Desk",
-  description: "Resolve PayPal disputes early, with AI suggestions grounded in your own order data.",
+  description,
+  openGraph: { title: "Dispute Desk", description, siteName: "Dispute Desk" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -21,11 +25,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         <header className="border-b border-line bg-sheet">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-            <Link href="/" className="text-lg font-bold tracking-tight">
+            <Link href="/" className="whitespace-nowrap text-lg font-bold tracking-tight">
               Dispute Desk
             </Link>
             <div className="flex items-center gap-2">
-              <span className="rounded border border-line px-2 py-0.5 text-sm text-muted">PayPal sandbox</span>
+              <span className="hidden whitespace-nowrap rounded border border-line px-2 py-0.5 text-sm text-muted sm:inline">
+                PayPal sandbox
+              </span>
               <Suspense fallback={null}>
                 <AccessBadge />
               </Suspense>

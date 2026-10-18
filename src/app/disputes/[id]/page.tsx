@@ -7,7 +7,7 @@ import { type PanelRecommendation, RecommendationPanel } from "@/components/reco
 import { SuggestButton } from "@/components/suggest-button";
 import type { CaseFile } from "@/lib/case-file";
 import { prisma } from "@/lib/db";
-import { daysUntil, displayFactValue, formatDate, reasonLabel, stageLabel, statusLabel } from "@/lib/labels";
+import { ACTION_SHORT, daysUntil, displayFactValue, formatDate, reasonLabel, stageLabel, statusLabel } from "@/lib/labels";
 import { isOperator } from "@/lib/operator";
 import { allowedActions, getDispute } from "@/lib/paypal/disputes";
 
@@ -165,13 +165,23 @@ async function Case({ params }: { params: Promise<{ id: string }> }) {
                 {dispute.actions.map((action) => (
                   <li key={action.id} className="rounded-lg border border-line bg-sheet px-4 py-3 text-sm">
                     <div className="flex justify-between gap-3">
-                      <span className="font-semibold">{action.type.replace(/_/g, " ").toLowerCase()}</span>
+                      <span className="font-semibold">{ACTION_SHORT[action.type]}</span>
                       <span className={action.status === "SUCCEEDED" ? "text-decide-dark" : action.status === "FAILED" ? "text-risk" : "text-muted"}>
-                        {action.status.toLowerCase()}
+                        {statusLabel(action.status)}
                       </span>
                     </div>
                     <div className="mt-1 text-muted">
-                      {action.createdAt.toLocaleString("en-SG")}. Request ID {action.idempotencyKey}
+                      {action.createdAt.toLocaleString("en-SG", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "numeric",
+                        minute: "2-digit",
+                        timeZone: "Asia/Singapore",
+                      })}{" "}
+                      SGT
+                    </div>
+                    <div className="mt-0.5 break-all text-xs text-muted">
+                      Request ID {action.idempotencyKey}
                     </div>
                     {action.error && <div className="mt-1 text-risk">{action.error}</div>}
                   </li>
