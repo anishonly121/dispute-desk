@@ -12,7 +12,7 @@ When a buyer opens a dispute, Dispute Desk pulls everything PayPal knows about i
 
 1. Open the live demo. It starts read-only, so you can open any dispute and read its case file and suggestion.
 2. Click a citation chip like `F10` or `M1` next to a reason. The page scrolls to that fact in the case file and highlights it.
-3. To send something, click **Read-only. Unlock** in the header and enter the operator key from the Devpost testing instructions. Then you can sync with PayPal, get a new suggestion, edit the reply and send it.
+3. Sending is locked on the public demo, so visitors can't change the sandbox disputes. To try the whole flow (sync, new suggestions, editing and sending), [run it locally](#run-it-locally) with your own PayPal sandbox app and operator key.
 
 Everything runs against the PayPal sandbox. No real money moves.
 
@@ -27,7 +27,7 @@ Everything runs against the PayPal sandbox. No real money moves.
 ## How it works
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[PayPal webhook] -->|signature verified| B[Sync dispute]
   S[Sync button] --> B
   B --> C[(Postgres)]
